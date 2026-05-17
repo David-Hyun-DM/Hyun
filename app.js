@@ -342,8 +342,10 @@ function renderResults(places, avoids = []) {
   const title = buildKeyword(getFilters());
   setSheetTitle(title, `${places.length}개`);
 
-  document.getElementById('sheetBody').innerHTML = '';
-  document.getElementById('sheetEmpty').style.display = 'none';
+  const sheetBody = document.getElementById('sheetBody');
+  const sheetEmpty = document.getElementById('sheetEmpty');
+  if (sheetBody) sheetBody.innerHTML = '';
+  if (sheetEmpty) sheetEmpty.style.display = 'none';
 
   const bounds = new kakao.maps.LatLngBounds();
 
