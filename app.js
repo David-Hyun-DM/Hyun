@@ -704,7 +704,7 @@ function setSheetTitle(title, count) {
 
 function setSheetEmpty(msg) {
   document.getElementById('sheetBody').innerHTML = `<div class="sheet-empty"><p>${msg}</p></div>`;
-  const _e=document.getElementById('sheetEmpty');if(_e)_e.style.display='none';
+  document.getElementById('sheetMoreWrap').style.display = 'none';
 }
 
 /* ── 반경 슬라이더 ───────────────────────────── */
