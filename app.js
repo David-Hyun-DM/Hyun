@@ -52,6 +52,7 @@ window.onload = () => {
   function doInit() {
     if (started) return;
     started = true;
+    ensureElements();
     try {
       initMap();
       initSheet();
@@ -67,6 +68,26 @@ window.onload = () => {
   kakao.maps.load(doInit);
   setTimeout(doInit, 1500);
 };
+
+function ensureElements() {
+  const sheet = document.getElementById('sheet');
+  if (sheet && !document.getElementById('sheetEmpty')) {
+    const el = document.createElement('div');
+    el.id = 'sheetEmpty'; el.className = 'sheet-empty';
+    sheet.appendChild(el);
+  }
+  if (sheet && !document.getElementById('sheetMoreWrap')) {
+    const el = document.createElement('div');
+    el.id = 'sheetMoreWrap'; el.className = 'sheet-more-wrap';
+    el.style.display = 'none';
+    sheet.appendChild(el);
+  }
+  if (sheet && !document.getElementById('sheetBody')) {
+    const el = document.createElement('div');
+    el.id = 'sheetBody'; el.className = 'sheet-body';
+    sheet.insertBefore(el, sheet.firstChild);
+  }
+}
 
 function initMap() {
   const container = document.getElementById('map');
