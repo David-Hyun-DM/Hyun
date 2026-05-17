@@ -344,17 +344,18 @@ function renderResults(places, avoids = []) {
 
   const sheetBody = document.getElementById('sheetBody');
   const sheetEmpty = document.getElementById('sheetEmpty');
+  const moreWrap = document.getElementById('sheetMoreWrap');
   if (sheetBody) sheetBody.innerHTML = '';
   if (sheetEmpty) sheetEmpty.style.display = 'none';
 
   const bounds = new kakao.maps.LatLngBounds();
 
   // 피해야할것 경고
-  if (avoids.length) {
+  if (avoids.length && sheetBody) {
     const warn = document.createElement('div');
     warn.style.cssText = 'margin:6px 4px 4px;padding:10px 12px;background:#FFF7ED;border-left:3px solid #F59E0B;border-radius:8px;font-size:12px;color:#92400E;';
     warn.textContent = `⚠️ 피해야할것 (${avoids.join(', ')}) — 식당에 직접 문의하세요.`;
-    document.getElementById('sheetBody').appendChild(warn);
+    sheetBody.appendChild(warn);
   }
 
   places.forEach((place, i) => {
@@ -365,19 +366,17 @@ function renderResults(places, avoids = []) {
     makeMarker(place, i, lat, lng, dist);
     bounds.extend(new kakao.maps.LatLng(lat, lng));
 
-    const card = makeCard(place, i, dist);
-    document.getElementById('sheetBody').appendChild(card);
+    if (sheetBody) {
+      const card = makeCard(place, i, dist);
+      sheetBody.appendChild(card);
+    }
   });
 
   if (gpsOverlay) bounds.extend(gpsOverlay.getPosition());
   map.setBounds(bounds);
 
-  // 더 보기 버튼
-  const moreWrap = document.getElementById('sheetMoreWrap');
-  if (curPagination && curPagination.hasNextPage) {
-    moreWrap.style.display = 'block';
-  } else {
-    moreWrap.style.display = 'none';
+  if (moreWrap) {
+    moreWrap.style.display = (curPagination && curPagination.hasNextPage) ? 'block' : 'none';
   }
 }
 
