@@ -48,15 +48,24 @@ window.onload = () => {
     document.getElementById('apiGuide').classList.remove('hidden');
     return;
   }
-  kakao.maps.load(() => {
-    initMap();
-    initSheet();
-    initSlider();
-    renderRecent();
-    renderRecentLocs();
-    renderFavorites();
-    registerSW();
-  });
+  let started = false;
+  function doInit() {
+    if (started) return;
+    started = true;
+    try {
+      initMap();
+      initSheet();
+      initSlider();
+      renderRecent();
+      renderRecentLocs();
+      renderFavorites();
+      registerSW();
+    } catch(e) {
+      document.getElementById('apiGuide').classList.remove('hidden');
+    }
+  }
+  kakao.maps.load(doInit);
+  setTimeout(doInit, 1500);
 };
 
 function initMap() {
