@@ -319,11 +319,11 @@ function recenterMap() {
 
 function getFilters() {
   return {
-    menu:    document.querySelector('input[name="menu"]:checked')?.value    || '한식',
+    menu:    document.querySelector('input[name="menu"]:checked')?.value    || '',
     types:   [...document.querySelectorAll('input[name="type"]:checked')].map(e => e.value),
-    purpose: document.querySelector('input[name="purpose"]:checked')?.value || '배부름',
+    purpose: document.querySelector('input[name="purpose"]:checked')?.value || '',
     people:  parseInt(document.querySelector('input[name="people"]:checked')?.value || 2),
-    price:   parseInt(document.querySelector('input[name="price"]:checked')?.value  || 2),
+    price:   parseInt(document.querySelector('input[name="price"]:checked')?.value  || 0),
     avoids:  [...document.querySelectorAll('input[name="avoid"]:checked')].map(e => e.value),
     radiusOverride: RADIUS_VALUES[parseInt(document.getElementById('radiusSlider').value)]
   };
@@ -348,11 +348,7 @@ function getRadius(f) {
 }
 
 function resetFilters() {
-  document.querySelector('input[name="menu"][value="한식"]').checked      = true;
-  document.querySelector('input[name="purpose"][value="배부름"]').checked = true;
-  document.querySelector('input[name="people"][value="2"]').checked       = true;
-  document.querySelector('input[name="price"][value="2"]').checked        = true;
-  document.querySelectorAll('input[name="type"], input[name="avoid"]').forEach(e => e.checked = false);
+  document.querySelectorAll('input[name="menu"], input[name="purpose"], input[name="people"], input[name="price"], input[name="type"], input[name="avoid"]').forEach(e => e.checked = false);
   document.getElementById('radiusSlider').value = 0;
   updateRadiusLabel(0);
   showToast('필터가 초기화되었습니다.');
