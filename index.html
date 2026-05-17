@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FF6B35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="맛집 찾기">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>맛집 찾기</title>
+  <!-- ★ YOUR_KAKAO_API_KEY → 카카오 개발자센터 JavaScript 키로 교체 ★ -->
+  <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=cb760295f7b956f6c47a915ee684c60b&libraries=services,geocoder&autoload=false"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     API 키 미설정 안내 (자동 감지)
+══════════════════════════════════════ -->
+<div id="apiGuide" class="api-guide hidden">
+  <div class="api-guide-box">
+    <div class="api-guide-icon">⚙️</div>
+    <h2>카카오 API 키 설정</h2>
+    <ol>
+      <li><strong>developers.kakao.com</strong> 접속 → 로그인</li>
+      <li>내 애플리케이션 → 애플리케이션 추가</li>
+      <li>앱 설정 → 플랫폼 → Web → 사이트 도메인 추가<br>
+          <code>http://localhost</code> 또는 파일 경로</li>
+      <li>앱 키 → <strong>JavaScript 키</strong> 복사</li>
+      <li><code>index.html</code> 3번째 script 태그의<br>
+          <code>YOUR_KAKAO_API_KEY</code> 를 키로 교체</li>
+    </ol>
+    <p class="api-note">⚠️ REST API 키가 아닌 <strong>JavaScript 키</strong>를 사용하세요.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     앱 본체
+══════════════════════════════════════ -->
+<div id="app">
+
+  <!-- 위치 바 (항상 표시) -->
+  <div class="loc-bar" id="locBar" onclick="openLocModal()">
+    <span class="loc-pin">📍</span>
+    <span class="loc-label" id="locLabel">위치를 설정해주세요</span>
+    <span class="loc-change">변경 ›</span>
+  </div>
+
+  <!-- ── 뷰 영역 ── -->
+  <div class="view-wrap">
+
+    <!-- [1] 검색 뷰 -->
+    <div class="view active" id="viewSearch">
+      <div class="search-scroll">
+
+        <!-- 최근 검색 -->
+        <div class="section" id="recentSection" style="display:none">
+          <div class="sec-title">🕐 최근 검색</div>
+          <div class="chip-row" id="recentChips"></div>
+        </div>
+
+        <!-- 메뉴 -->
+        <div class="section">
+          <div class="sec-title">🍜 메뉴</div>
+          <div class="tag-row">
+            <label class="tag"><input type="radio" name="menu" value="한식" checked><span>한식</span></label>
+            <label class="tag"><input type="radio" name="menu" value="일식"><span>일식</span></label>
+            <label class="tag"><input type="radio" name="menu" value="중식"><span>중식</span></label>
+            <label class="tag"><input type="radio" name="menu" value="양식"><span>양식</span></label>
+            <label class="tag"><input type="radio" name="menu" value="기타"><span>기타</span></label>
+          </div>
+        </div>
+
+        <!-- 종류 -->
+        <div class="section">
+          <div class="sec-title">🥩 종류 <span class="sec-hint">복수선택</span></div>
+          <div class="tag-row">
+            <label class="tag"><input type="checkbox" name="type" value="고기"><span>🥩 고기</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="해물"><span>🦞 해물</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="탕/국"><span>🍲 탕/국</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="면"><span>🍜 면</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="구이"><span>🔥 구이</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="찜/조림"><span>🫕 찜/조림</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="전골/샤브"><span>♨️ 전골</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="튀김/전"><span>🍤 튀김</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="덮밥"><span>🍚 덮밥</span></label>
+            <label class="tag"><input type="checkbox" name="type" value="분식"><span>🌮 분식</span></label>
+          </div>
+        </div>
+
+        <!-- 목적 -->
+        <div class="section">
+          <div class="sec-title">🎯 목적</div>
+          <div class="tag-row">
+            <label class="tag"><input type="radio" name="purpose" value="접대"><span>🤝 접대</span></label>
+            <label class="tag"><input type="radio" name="purpose" value="배부름" checked><span>😋 배부름</span></label>
+            <label class="tag"><input type="radio" name="purpose" value="데이트"><span>💑 데이트</span></label>
+            <label class="tag"><input type="radio" name="purpose" value="가족모임"><span>👨‍👩‍👧 가족</span></label>
+            <label class="tag"><input type="radio" name="purpose" value="회식"><span>🍻 회식</span></label>
+            <label class="tag"><input type="radio" name="purpose" value="간단식사"><span>⚡ 간단</span></label>
+            <label class="tag"><input type="radio" name="purpose" value="특별한날"><span>🎉 특별한날</span></label>
+            <label class="tag"><input type="radio" name="purpose" value="혼밥"><span>🙋 혼밥</span></label>
+          </div>
+        </div>
+
+        <!-- 명수 -->
+        <div class="section">
+          <div class="sec-title">👥 인원</div>
+          <div class="tag-row">
+            <label class="tag"><input type="radio" name="people" value="1"><span>혼자</span></label>
+            <label class="tag"><input type="radio" name="people" value="2" checked><span>2명</span></label>
+            <label class="tag"><input type="radio" name="people" value="3"><span>3~4명</span></label>
+            <label class="tag"><input type="radio" name="people" value="5"><span>5~9명</span></label>
+            <label class="tag"><input type="radio" name="people" value="10"><span>10명+</span></label>
+          </div>
+        </div>
+
+        <!-- 가격대 -->
+        <div class="section">
+          <div class="sec-title">💰 가격대 <span class="sec-hint">1인 기준</span></div>
+          <div class="tag-row">
+            <label class="tag"><input type="radio" name="price" value="1"><span>~1만원</span></label>
+            <label class="tag"><input type="radio" name="price" value="2" checked><span>1~3만원</span></label>
+            <label class="tag"><input type="radio" name="price" value="3"><span>3~5만원</span></label>
+            <label class="tag"><input type="radio" name="price" value="4"><span>5~10만원</span></label>
+            <label class="tag"><input type="radio" name="price" value="5"><span>10만원+</span></label>
+          </div>
+        </div>
+
+        <!-- 피해야할것 -->
+        <div class="section">
+          <div class="sec-title">🚫 피해야할것 <span class="sec-hint">복수선택</span></div>
+          <div class="tag-row">
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="매운것"><span>🌶️ 매운것</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="짠것"><span>🧂 짠것</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="기름진것"><span>🛢️ 기름진것</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="날것/회"><span>🐟 날것/회</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="갑각류"><span>🦐 갑각류</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="견과류"><span>🥜 견과류</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="돼지고기"><span>🐷 돼지고기</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="소고기"><span>🐄 소고기</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="글루텐"><span>🌾 글루텐</span></label>
+            <label class="tag avoid"><input type="checkbox" name="avoid" value="유제품"><span>🥛 유제품</span></label>
+          </div>
+        </div>
+
+        <!-- 검색 반경 슬라이더 -->
+        <div class="section">
+          <div class="sec-title">📡 검색 반경 <span class="sec-hint" id="radiusLabel">자동</span></div>
+          <input type="range" id="radiusSlider" min="0" max="4" step="1" value="0" class="radius-slider"
+                 oninput="updateRadiusLabel(this.value)">
+          <div class="radius-marks">
+            <span>자동</span><span>500m</span><span>1km</span><span>2km</span><span>3km</span>
+          </div>
+        </div>
+
+        <div class="search-actions">
+          <button class="btn-reset" onclick="resetFilters()">🔄 초기화</button>
+          <button class="btn-search" onclick="doSearch()">🔍 맛집 검색</button>
+        </div>
+
+        <div class="spacer-bottom"></div>
+      </div>
+    </div>
+
+    <!-- [2] 지도 뷰 -->
+    <div class="view" id="viewMap">
+      <div id="map"></div>
+
+      <!-- 지도 위 버튼들 -->
+      <div class="map-fabs">
+        <button class="fab-btn" onclick="recenterMap()" title="내 위치로">📍</button>
+        <button class="fab-btn wide" onclick="searchHere()">이 지역 검색</button>
+      </div>
+
+      <!-- 바텀 시트 -->
+      <div class="sheet" id="sheet">
+        <div class="sheet-handle-area" id="sheetHandle">
+          <div class="sheet-handle"></div>
+        </div>
+        <div class="sheet-head">
+          <span class="sheet-title" id="sheetTitle">검색 결과</span>
+          <span class="sheet-count" id="sheetCount"></span>
+        </div>
+        <div class="sheet-body" id="sheetBody">
+          <div class="sheet-empty" id="sheetEmpty">
+            <p>🔍 검색 탭에서 조건을 설정하고<br>검색해주세요</p>
+          </div>
+        </div>
+        <div class="sheet-more-wrap" id="sheetMoreWrap" style="display:none">
+          <button class="btn-more" onclick="loadMore()">더 보기 ↓</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- [3] 즐겨찾기 뷰 -->
+    <div class="view" id="viewFav">
+      <div class="fav-scroll">
+        <div class="fav-header">
+          <h2>❤️ 즐겨찾기</h2>
+          <span class="fav-count" id="favCount">0개</span>
+        </div>
+        <div id="favList">
+          <div class="empty-state">
+            <div class="empty-icon">🍽️</div>
+            <p>즐겨찾기한 맛집이 없습니다.<br>결과에서 ❤️ 버튼을 눌러 저장하세요.</p>
+          </div>
+        </div>
+        <div class="spacer-bottom"></div>
+      </div>
+    </div>
+
+  </div><!-- view-wrap -->
+
+  <!-- 하단 탭 바 -->
+  <nav class="tab-bar">
+    <button class="tab active" data-view="viewSearch" onclick="switchTab(this)">
+      <span class="tab-ico">🔍</span>
+      <span class="tab-lbl">검색</span>
+    </button>
+    <button class="tab" data-view="viewMap" onclick="switchTab(this)">
+      <span class="tab-ico">🗺️</span>
+      <span class="tab-lbl">지도</span>
+    </button>
+    <button class="tab" data-view="viewFav" onclick="switchTab(this)">
+      <span class="tab-ico">❤️</span>
+      <span class="tab-lbl">즐겨찾기</span>
+    </button>
+  </nav>
+
+</div><!-- app -->
+
+<!-- ══════════════════════════════════════
+     위치 모달
+══════════════════════════════════════ -->
+<div class="modal-wrap hidden" id="locModal">
+  <div class="modal-bg" onclick="closeLocModal()"></div>
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>📍 위치 설정</h3>
+      <button class="modal-close" onclick="closeLocModal()">✕</button>
+    </div>
+    <button class="btn-gps" onclick="useGPS()">
+      <span>📡</span> GPS 현재 위치 사용
+    </button>
+    <div class="or-divider"><span>또는 주소 입력</span></div>
+    <div class="addr-row">
+      <input type="text" id="addrInput" placeholder="지역명, 주소, 장소명 입력..."
+             oninput="debounceAddrSearch()" onkeypress="if(event.key==='Enter') addrSearch()">
+      <button onclick="addrSearch()">검색</button>
+    </div>
+    <div id="addrResults" class="addr-results"></div>
+
+    <!-- 최근 위치 -->
+    <div id="recentLocWrap" style="display:none">
+      <div class="or-divider"><span>최근 위치</span></div>
+      <div id="recentLocs" class="addr-results"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     식당 상세 모달
+══════════════════════════════════════ -->
+<div class="modal-wrap hidden" id="detailModal">
+  <div class="modal-bg" onclick="closeDetail()"></div>
+  <div class="modal modal-detail">
+    <div class="modal-hd">
+      <h3 id="detailName">식당명</h3>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-row">
+        <span class="detail-icon">📂</span>
+        <span id="detailCat"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-icon">📍</span>
+        <span id="detailAddr"></span>
+        <button class="copy-btn" onclick="copyText('detailAddr')" title="주소 복사">복사</button>
+      </div>
+      <div class="detail-row" id="detailPhoneRow">
+        <span class="detail-icon">📞</span>
+        <a id="detailPhone" href="#"></a>
+      </div>
+      <div class="detail-row" id="detailDistRow">
+        <span class="detail-icon">🛣️</span>
+        <span id="detailDist"></span>
+      </div>
+    </div>
+    <div class="detail-actions">
+      <button class="detail-btn nav-btn" onclick="openNavigation()">🗺️ 길찾기</button>
+      <button class="detail-btn share-btn" onclick="sharePlace()">🔗 공유</button>
+      <button class="detail-btn fav-btn" id="detailFavBtn" onclick="toggleFavFromDetail()">❤️ 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 로딩 -->
+<div class="loading hidden" id="loading">
+  <div class="spinner"></div>
+  <p id="loadingText">맛집을 찾고 있습니다...</p>
+</div>
+
+<!-- 토스트 -->
+<div class="toast hidden" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
