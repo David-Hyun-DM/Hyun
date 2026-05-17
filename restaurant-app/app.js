@@ -52,6 +52,7 @@ window.onload = () => {
   function doInit() {
     if (started) return;
     started = true;
+    ensureElements();
     try {
       initMap();
       initSheet();
@@ -67,6 +68,26 @@ window.onload = () => {
   kakao.maps.load(doInit);
   setTimeout(doInit, 1500);
 };
+
+function ensureElements() {
+  const sheet = document.getElementById('sheet');
+  if (sheet && !document.getElementById('sheetEmpty')) {
+    const el = document.createElement('div');
+    el.id = 'sheetEmpty'; el.className = 'sheet-empty';
+    sheet.appendChild(el);
+  }
+  if (sheet && !document.getElementById('sheetMoreWrap')) {
+    const el = document.createElement('div');
+    el.id = 'sheetMoreWrap'; el.className = 'sheet-more-wrap';
+    el.style.display = 'none';
+    sheet.appendChild(el);
+  }
+  if (sheet && !document.getElementById('sheetBody')) {
+    const el = document.createElement('div');
+    el.id = 'sheetBody'; el.className = 'sheet-body';
+    sheet.insertBefore(el, sheet.firstChild);
+  }
+}
 
 function initMap() {
   const container = document.getElementById('map');
@@ -298,11 +319,11 @@ function recenterMap() {
 
 function getFilters() {
   return {
-    menu:    document.querySelector('input[name="menu"]:checked')?.value    || '한식',
+    menu:    document.querySelector('input[name="menu"]:checked')?.value    || '',
     types:   [...document.querySelectorAll('input[name="type"]:checked')].map(e => e.value),
-    purpose: document.querySelector('input[name="purpose"]:checked')?.value || '배부름',
+    purpose: document.querySelector('input[name="purpose"]:checked')?.value || '',
     people:  parseInt(document.querySelector('input[name="people"]:checked')?.value || 2),
-    price:   parseInt(document.querySelector('input[name="price"]:checked')?.value  || 2),
+    price:   parseInt(document.querySelector('input[name="price"]:checked')?.value  || 0),
     avoids:  [...document.querySelectorAll('input[name="avoid"]:checked')].map(e => e.value),
     radiusOverride: RADIUS_VALUES[parseInt(document.getElementById('radiusSlider').value)]
   };
@@ -327,11 +348,7 @@ function getRadius(f) {
 }
 
 function resetFilters() {
-  document.querySelector('input[name="menu"][value="한식"]').checked      = true;
-  document.querySelector('input[name="purpose"][value="배부름"]').checked = true;
-  document.querySelector('input[name="people"][value="2"]').checked       = true;
-  document.querySelector('input[name="price"][value="2"]').checked        = true;
-  document.querySelectorAll('input[name="type"], input[name="avoid"]').forEach(e => e.checked = false);
+  document.querySelectorAll('input[name="menu"], input[name="purpose"], input[name="people"], input[name="price"], input[name="type"], input[name="avoid"]').forEach(e => e.checked = false);
   document.getElementById('radiusSlider').value = 0;
   updateRadiusLabel(0);
   showToast('필터가 초기화되었습니다.');
@@ -342,17 +359,20 @@ function renderResults(places, avoids = []) {
   const title = buildKeyword(getFilters());
   setSheetTitle(title, `${places.length}개`);
 
-  document.getElementById('sheetBody').innerHTML = '';
-  document.getElementById('sheetEmpty').style.display = 'none';
+  const sheetBody = document.getElementById('sheetBody');
+  const sheetEmpty = document.getElementById('sheetEmpty');
+  const moreWrap = document.getElementById('sheetMoreWrap');
+  if (sheetBody) sheetBody.innerHTML = '';
+  if (sheetEmpty) sheetEmpty.style.display = 'none';
 
   const bounds = new kakao.maps.LatLngBounds();
 
   // 피해야할것 경고
-  if (avoids.length) {
+  if (avoids.length && sheetBody) {
     const warn = document.createElement('div');
     warn.style.cssText = 'margin:6px 4px 4px;padding:10px 12px;background:#FFF7ED;border-left:3px solid #F59E0B;border-radius:8px;font-size:12px;color:#92400E;';
     warn.textContent = `⚠️ 피해야할것 (${avoids.join(', ')}) — 식당에 직접 문의하세요.`;
-    document.getElementById('sheetBody').appendChild(warn);
+    sheetBody.appendChild(warn);
   }
 
   places.forEach((place, i) => {
@@ -363,19 +383,17 @@ function renderResults(places, avoids = []) {
     makeMarker(place, i, lat, lng, dist);
     bounds.extend(new kakao.maps.LatLng(lat, lng));
 
-    const card = makeCard(place, i, dist);
-    document.getElementById('sheetBody').appendChild(card);
+    if (sheetBody) {
+      const card = makeCard(place, i, dist);
+      sheetBody.appendChild(card);
+    }
   });
 
   if (gpsOverlay) bounds.extend(gpsOverlay.getPosition());
   map.setBounds(bounds);
 
-  // 더 보기 버튼
-  const moreWrap = document.getElementById('sheetMoreWrap');
-  if (curPagination && curPagination.hasNextPage) {
-    moreWrap.style.display = 'block';
-  } else {
-    moreWrap.style.display = 'none';
+  if (moreWrap) {
+    moreWrap.style.display = (curPagination && curPagination.hasNextPage) ? 'block' : 'none';
   }
 }
 

@@ -558,7 +558,7 @@ a      { color: inherit; text-decoration: none; }
   }
 
   /* 데스크탑에서 모든 뷰 항상 위치 고정 */
-  .view { position: relative; }
+  .view { position: relative; height: 100%; overflow: hidden; }
   #viewSearch.active, #viewFav.active { opacity: 1; pointer-events: auto; }
 
   /* 바텀 시트 → 오른쪽 하단 고정 패널 */
