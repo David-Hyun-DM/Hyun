@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#FF6B35"/>
+  <!-- Fork -->
+  <rect x="148" y="110" width="30" height="120" rx="15" fill="white"/>
+  <rect x="196" y="110" width="30" height="120" rx="15" fill="white"/>
+  <rect x="244" y="110" width="30" height="120" rx="15" fill="white"/>
+  <path d="M148 220 Q211 260 274 220" stroke="white" stroke-width="30" fill="none" stroke-linecap="round"/>
+  <rect x="196" y="250" width="30" height="155" rx="15" fill="white"/>
+  <!-- Knife -->
+  <rect x="320" y="110" width="30" height="295" rx="15" fill="white"/>
+  <path d="M320 110 Q380 130 350 230 L320 230Z" fill="white"/>
+</svg>

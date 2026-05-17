@@ -1,0 +1,15 @@
+{
+  "name": "맛집 찾기",
+  "short_name": "맛집",
+  "description": "카카오맵으로 어디서든 주변 맛집을 찾아보세요",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FF6B35",
+  "theme_color": "#FF6B35",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["food", "lifestyle", "navigation"]
+}
